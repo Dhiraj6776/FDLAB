@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AQUALOGICA | Analytics Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Inter,Segoe UI,Arial,sans-serif}
+:root{
+--bg:#ffffff;
+--panel:#ffffff;
+--panel2:#f5fbfb;
+--cyan:#0e7490;
+--cyan2:#22d3ee;
+--green:#15803d;
+--green2:#34d399;
+--text:#123238;
+--muted:#668083;
+--line:#d9e8e9;
+--danger:#f87171;
+--warning:#fbbf24;
+}
+body{background:#ffffff;color:var(--text);min-height:100vh}
+.sidebar{position:fixed;left:0;top:0;width:245px;height:100vh;background:rgba(5,24,27,.96);border-right:1px solid var(--line);padding:26px 16px;z-index:20}
+.brand{padding:4px 12px 28px}
+.brand h1{font-size:23px;letter-spacing:3px}
+.brand h1 span{color:var(--cyan2)}
+.brand p{font-size:11px;color:var(--muted);margin-top:7px;letter-spacing:1.2px}
+.nav{list-style:none}
+.nav li{margin:6px 0}
+.nav a{display:flex;align-items:center;gap:12px;padding:13px 14px;color:#a9c7c9;text-decoration:none;border-radius:10px;cursor:pointer;transition:.2s}
+.nav a:hover{background:#0c3035;color:#fff}
+.nav a.active{background:linear-gradient(90deg,#0e7490,#116b57);color:#fff;box-shadow:0 8px 24px rgba(14,116,144,.18)}
+.icon{width:22px;text-align:center;font-size:15px}
+.sidebar-bottom{position:absolute;bottom:22px;left:28px;right:28px;color:var(--muted);font-size:11px;line-height:1.6}
+.main{margin-left:245px;padding:25px;min-height:100vh;background:#ffffff}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px}
+.crumb{color:var(--muted);font-size:12px}
+.top-actions{display:flex;align-items:center;gap:10px}
+.badge{padding:7px 11px;border:1px solid var(--line);border-radius:20px;color:#17616a;font-size:11px;background:#f1f9f9}
+.avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--cyan),var(--green));font-weight:700}
+.page{display:none}.page.active{display:block}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;margin:8px 0 22px}
+.hero h2{font-size:28px;letter-spacing:-.5px}
+.hero p{color:var(--muted);font-size:13px;margin-top:6px}
+.btn{border:1px solid #b9d9dc;background:#f4fbfb;color:#155e67;padding:10px 14px;border-radius:9px;cursor:pointer}
+.btn:hover{background:#e5f5f6}
+.grid{display:grid;gap:16px}
+.kpi-grid{grid-template-columns:repeat(4,1fr)}
+.card{background:#ffffff;border:1px solid var(--line);border-radius:15px;padding:18px;box-shadow:0 8px 28px rgba(10,70,75,.08)}
+.kpi .label{color:var(--muted);font-size:12px}
+.kpi .value{font-size:28px;font-weight:750;margin:9px 0 6px}
+.change{font-size:11px}.up{color:var(--green2)}.down{color:var(--danger)}
+.content-grid{grid-template-columns:1.55fr 1fr;margin-top:16px}
+.chart-card{min-height:330px}
+.card-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px}
+.card-head h3{font-size:14px}.card-head span{font-size:11px;color:var(--muted)}
+canvas{width:100%;height:250px;display:block}
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:25px;height:250px}
+.donut{width:165px;height:165px;border-radius:50%;background:conic-gradient(var(--cyan2) 0 43%,var(--green2) 43% 71%,#0e6470 71% 88%,#16464b 88% 100%);position:relative}
+.donut:after{content:"";position:absolute;inset:32px;background:#ffffff;border-radius:50%}
+.donut-center{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;font-weight:700;z-index:2}
+.legend{display:grid;gap:12px;font-size:11px;color:#567276}
+.legend div{display:flex;gap:8px;align-items:center}.dot{width:8px;height:8px;border-radius:50%;display:inline-block}.c1{background:var(--cyan2)}.c2{background:var(--green2)}.c3{background:#0e6470}.c4{background:#16464b}
+.table-card{margin-top:16px}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #173a3e}
+th{color:#8fb7ba;font-weight:600}
+td{color:#23474b}
+tr{cursor:pointer}tr:hover td{background:#f1f9f9}
+.status{padding:5px 9px;border-radius:15px;font-size:10px}.good{background:#0b4d35;color:#8af0c2}.warn{background:#4b3b0a;color:#f7d66a}
+.product-grid{grid-template-columns:repeat(3,1fr)}
+.product{cursor:pointer;transition:.2s}.product:hover{transform:translateY(-3px);border-color:#286a70}
+.product-top{height:115px;border-radius:11px;background:linear-gradient(135deg,#dff8f7,#b9ece5);display:grid;place-items:center;margin-bottom:14px;position:relative;overflow:hidden}
+.product-top:before{content:"";width:55px;height:78px;border-radius:13px 13px 18px 18px;background:linear-gradient(180deg,#ffffff,#bce9e4);box-shadow:0 8px 25px rgba(0,0,0,.25)}
+.product-top:after{content:"A";position:absolute;font-weight:900;color:#0d5660;font-size:23px}
+.product h3{font-size:14px}.product p{font-size:11px;color:var(--muted);margin-top:5px}
+.product-row{display:flex;justify-content:space-between;margin-top:14px;font-size:12px}.product-row strong{color:#dff}
+.progress{height:7px;background:#e2eeee;border-radius:10px;margin-top:8px;overflow:hidden}.progress span{display:block;height:100%;border-radius:10px;background:linear-gradient(90deg,var(--cyan2),var(--green2))}
+.insight-grid{grid-template-columns:repeat(3,1fr)}
+.insight{min-height:160px}.insight .big{font-size:30px;font-weight:750;margin:12px 0}.insight p{font-size:12px;color:var(--muted);line-height:1.6}
+.activity{display:grid;gap:12px}.activity-item{display:flex;gap:12px;align-items:flex-start;padding:12px;border:1px solid #d9e8e9;border-radius:10px;background:#f7fbfb}.activity-dot{width:9px;height:9px;border-radius:50%;background:var(--green2);margin-top:4px;box-shadow:0 0 12px rgba(52,211,153,.4)}.activity-item strong{font-size:12px}.activity-item small{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.detail{display:none}.detail.active{display:block}
+.back{margin-bottom:18px}.detail-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.detail-head h2{font-size:25px}.detail-head p{color:var(--muted);font-size:12px;margin-top:5px}.detail-grid{grid-template-columns:repeat(4,1fr)}.detail-stat{padding:17px}.detail-stat span{font-size:10px;color:var(--muted)}.detail-stat strong{display:block;font-size:22px;margin-top:8px}
+@media(max-width:1000px){.sidebar{width:205px}.main{margin-left:205px}.kpi-grid{grid-template-columns:repeat(2,1fr)}.content-grid{grid-template-columns:1fr}.product-grid,.insight-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:700px){.sidebar{position:relative;width:100%;height:auto;border-right:0;border-bottom:1px solid var(--line)}.sidebar-bottom{display:none}.nav{display:flex;overflow:auto}.nav li{min-width:max-content}.main{margin-left:0;padding:16px}.kpi-grid,.product-grid,.insight-grid,.detail-grid{grid-template-columns:1fr}.topbar{display:none}.hero{align-items:flex-start;gap:15px;flex-direction:column}}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+<div class="brand">
+<h1>AQUA<span>LOGICA</span></h1>
+<p>DATA & BUSINESS INTELLIGENCE</p>
+</div>
+<ul class="nav">
+<li><a class="active" data-page="overview"><span class="icon">◈</span>Overview</a></li>
+<li><a data-page="performance"><span class="icon">◫</span>Performance</a></li>
+<li><a data-page="products"><span class="icon">◇</span>Products</a></li>
+<li><a data-page="orders"><span class="icon">▣</span>Orders</a></li>
+<li><a data-page="insights"><span class="icon">✦</span>Insights</a></li>
+</ul>
+<div class="sidebar-bottom">Aqualogica Analytics<br>Demo dashboard • 2026</div>
+</aside>
+
+<main class="main">
+<div class="topbar">
+<div class="crumb">AQUALOGICA / <span id="crumb">Overview</span></div>
+<div class="top-actions"><span class="badge">Live demo data</span><div class="avatar">A</div></div>
+</div>
+
+<section id="overview" class="page active">
+<div class="hero"><div><h2>Business Overview</h2><p>Real-time view of revenue, orders, customers and product performance.</p></div><button class="btn" onclick="refreshData()">Refresh data</button></div>
+<div class="grid kpi-grid">
+<div class="card kpi"><div class="label">Total Revenue</div><div class="value">₹48.6L</div><div class="change up">▲ 18.4% vs last month</div></div>
+<div class="card kpi"><div class="label">Orders</div><div class="value">12,842</div><div class="change up">▲ 12.7% vs last month</div></div>
+<div class="card kpi"><div class="label">Customers</div><div class="value">8,416</div><div class="change up">▲ 9.8% vs last month</div></div>
+<div class="card kpi"><div class="label">Conversion Rate</div><div class="value">4.82%</div><div class="change up">▲ 0.64 pts</div></div>
+</div>
+<div class="grid content-grid">
+<div class="card chart-card"><div class="card-head"><h3>Revenue Trend</h3><span>Jan–Jun 2026</span></div><canvas id="revenueChart"></canvas></div>
+<div class="card chart-card"><div class="card-head"><h3>Sales Mix</h3><span>By category</span></div><div class="donut-wrap"><div class="donut"><div class="donut-center">100%</div></div><div class="legend"><div><i class="dot c1"></i>Face Care 43%</div><div><i class="dot c2"></i>Body Care 28%</div><div><i class="dot c3"></i>Sun Care 17%</div><div><i class="dot c4"></i>Others 12%</div></div></div></div>
+</div>
+<div class="card table-card"><div class="card-head"><h3>Top Products</h3><span>Click a product for details</span></div><table><thead><tr><th>Product</th><th>Category</th><th>Units Sold</th><th>Revenue</th><th>Growth</th><th>Status</th></tr></thead><tbody id="topProducts"></tbody></table></div>
+</section>
+
+<section id="performance" class="page">
+<div class="hero"><div><h2>Performance Analytics</h2><p>Compare channels, monthly sales and customer engagement.</p></div></div>
+<div class="grid content-grid">
+<div class="card chart-card"><div class="card-head"><h3>Monthly Orders</h3><span>Orders in thousands</span></div><canvas id="ordersChart"></canvas></div>
+<div class="card chart-card"><div class="card-head"><h3>Channel Contribution</h3><span>Revenue share</span></div><canvas id="channelChart"></canvas></div>
+</div>
+<div class="grid insight-grid" style="margin-top:16px">
+<div class="card insight"><span class="label">Average Order Value</span><div class="big">₹1,684</div><p>Customers are spending more per transaction, supported by bundles and routine-based product discovery.</p></div>
+<div class="card insight"><span class="label">Repeat Purchase Rate</span><div class="big">31.6%</div><p>Strong retention from skincare routines and replenishment-focused campaigns.</p></div>
+<div class="card insight"><span class="label">Customer Rating</span><div class="big">4.7/5</div><p>Product satisfaction remains high across the core face-care portfolio.</p></div>
+</div>
+</section>
+
+<section id="products" class="page">
+<div class="hero"><div><h2>Product Intelligence</h2><p>Portfolio performance, sell-through and inventory health.</p></div></div>
+<div class="grid product-grid" id="productGrid"></div>
+</section>
+
+<section id="orders" class="page">
+<div class="hero"><div><h2>Order Operations</h2><p>Monitor recent orders and fulfillment performance.</p></div></div>
+<div class="card table-card" style="margin-top:0"><div class="card-head"><h3>Recent Orders</h3><span>Latest 6 transactions</span></div><table><thead><tr><th>Order ID</th><th>Customer</th><th>Product</th><th>Amount</th><th>Channel</th><th>Status</th></tr></thead><tbody id="ordersTable"></tbody></table></div>
+<div class="grid content-grid">
+<div class="card chart-card"><div class="card-head"><h3>Fulfillment Rate</h3><span>Weekly</span></div><canvas id="fulfillmentChart"></canvas></div>
+<div class="card"><div class="card-head"><h3>Operational Activity</h3><span>Today</span></div><div class="activity">
+<div class="activity-item"><i class="activity-dot"></i><div><strong>1,284 orders processed</strong><small>Up 8.2% from yesterday</small></div></div>
+<div class="activity-item"><i class="activity-dot"></i><div><strong>97.1% fulfillment success</strong><small>Within the service target</small></div></div>
+<div class="activity-item"><i class="activity-dot"></i><div><strong>184 returns received</strong><small>1.4% of total orders</small></div></div>
+</div></div>
+</div>
+</section>
+
+<section id="insights" class="page">
+<div class="hero"><div><h2>Strategic Insights</h2><p>Decision-ready signals derived from the dashboard data.</p></div></div>
+<div class="grid insight-grid">
+<div class="card insight"><span class="label">Growth Opportunity</span><div class="big">+24%</div><p>Body-care bundles have the strongest growth potential based on current order frequency and cross-sell behavior.</p></div>
+<div class="card insight"><span class="label">Best Performing Segment</span><div class="big">18–24</div><p>The 18–24 customer segment contributes the highest order volume and strongest social-driven discovery.</p></div>
+<div class="card insight"><span class="label">Inventory Alert</span><div class="big">3 SKUs</div><p>Three high-demand SKUs are approaching the preferred inventory threshold and should be replenished.</p></div>
+<div class="card insight"><span class="label">Campaign Efficiency</span><div class="big">3.8×</div><p>Paid social and creator-led campaigns are generating the highest return among current acquisition channels.</p></div>
+<div class="card insight"><span class="label">Regional Leader</span><div class="big">West</div><p>The West region currently leads in revenue contribution, followed by South and North.</p></div>
+<div class="card insight"><span class="label">Next Action</span><div class="big">Bundles</div><p>Prioritize routine bundles, replenishment reminders and personalized recommendations in the next campaign cycle.</p></div>
+</div>
+</section>
+
+<section id="product-detail" class="detail">
+<button class="btn back" onclick="closeDetail()">← Back to Products</button>
+<div class="detail-head"><div><h2 id="detailName"></h2><p id="detailCategory"></p></div><span class="badge" id="detailStatus"></span></div>
+<div class="grid detail-grid">
+<div class="card detail-stat"><span>Units Sold</span><strong id="detailUnits"></strong></div>
+<div class="card detail-stat"><span>Revenue</span><strong id="detailRevenue"></strong></div>
+<div class="card detail-stat"><span>Growth</span><strong id="detailGrowth"></strong></div>
+<div class="card detail-stat"><span>Rating</span><strong id="detailRating"></strong></div>
+</div>
+<div class="grid content-grid" style="margin-top:16px">
+<div class="card chart-card"><div class="card-head"><h3>Product Sales Trend</h3><span>Last 6 months</span></div><canvas id="productDetailChart"></canvas></div>
+<div class="card"><div class="card-head"><h3>Product Summary</h3></div><p id="detailSummary" style="color:var(--muted);font-size:13px;line-height:1.8"></p><div style="margin-top:22px"><span style="font-size:11px;color:var(--muted)">Inventory Health</span><div class="progress"><span id="detailProgress"></span></div></div></div>
+</div>
+</section>
+
+</main>
+<script>
+const products=[
+{name:"Hydrate+ Gel Moisturizer",cat:"Face Care",units:"3,842",revenue:"₹8.42L",growth:"+26.4%",rating:"4.8/5",status:"Healthy",progress:86,summary:"A high-velocity hydration product with strong repeat purchases and consistent customer ratings."},
+{name:"Glow+ Dewy Sunscreen",cat:"Sun Care",units:"3,214",revenue:"₹7.16L",growth:"+31.8%",rating:"4.9/5",status:"Healthy",progress:79,summary:"One of the fastest-growing products, driven by daily-use positioning and strong digital discovery."},
+{name:"Detox Clay Mask",cat:"Face Care",units:"2,486",revenue:"₹5.28L",growth:"+14.2%",rating:"4.6/5",status:"Healthy",progress:72,summary:"A stable performer with strong weekend sales and opportunity for routine-based cross selling."},
+{name:"Radiance Body Lotion",cat:"Body Care",units:"2,118",revenue:"₹4.64L",growth:"+22.7%",rating:"4.7/5",status:"Watch",progress:61,summary:"Body-care demand is rising and this SKU is approaching its preferred inventory threshold."},
+{name:"Barrier Repair Cream",cat:"Face Care",units:"1,904",revenue:"₹4.21L",growth:"+18.1%",rating:"4.8/5",status:"Healthy",progress:83,summary:"A strong retention product with high satisfaction among customers focused on skin barrier care."},
+{name:"AHA Body Wash",cat:"Body Care",units:"1,632",revenue:"₹3.48L",growth:"+19.5%",rating:"4.6/5",status:"Watch",progress:57,summary:"Growing steadily and showing strong bundle potential with body lotion and exfoliation products."}
+];
+const orders=[
+["AQ10482","Ananya S.","Hydrate+ Gel Moisturizer","₹1,299","Website","Delivered"],
+["AQ10481","Riya P.","Glow+ Dewy Sunscreen","₹899","Instagram","Processing"],
+["AQ10480","Meera K.","Radiance Body Lotion","₹799","Website","Delivered"],
+["AQ10479","Sara M.","Barrier Repair Cream","₹1,049","Marketplace","Delivered"],
+["AQ10478","Nisha R.","AHA Body Wash","₹699","Website","Processing"],
+["AQ10477","Isha V.","Detox Clay Mask","₹749","Creator Store","Delivered"]
+];
+
+const nav=document.querySelectorAll(".nav a"),pages=document.querySelectorAll(".page"),crumb=document.getElementById("crumb");
+nav.forEach(a=>a.onclick=()=>showPage(a.dataset.page));
+function showPage(id){
+document.getElementById("product-detail").classList.remove("active");
+pages.forEach(p=>p.classList.toggle("active",p.id===id));
+nav.forEach(a=>a.classList.toggle("active",a.dataset.page===id));
+crumb.textContent=id.charAt(0).toUpperCase()+id.slice(1);
+history.replaceState(null,"","#"+id);
+setTimeout(drawAll,40);
+}
+function refreshData(){drawAll();document.querySelector(".badge").textContent="Updated just now"}
+function openProduct(i){
+const p=products[i];
+document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+document.getElementById("product-detail").classList.add("active");
+document.getElementById("detailName").textContent=p.name;
+document.getElementById("detailCategory").textContent=p.cat+" • Product intelligence";
+document.getElementById("detailStatus").textContent=p.status;
+document.getElementById("detailUnits").textContent=p.units;
+document.getElementById("detailRevenue").textContent=p.revenue;
+document.getElementById("detailGrowth").textContent=p.growth;
+document.getElementById("detailRating").textContent=p.rating;
+document.getElementById("detailSummary").textContent=p.summary;
+document.getElementById("detailProgress").style.width=p.progress+"%";
+crumb.textContent="Product Details";
+setTimeout(()=>drawLine("productDetailChart",[34,42,39,57,64,74]),50);
+}
+function closeDetail(){showPage("products")}
+function fill(){
+document.getElementById("topProducts").innerHTML=products.slice(0,5).map((p,i)=>`<tr onclick="openProduct(${i})"><td><strong>${p.name}</strong></td><td>${p.cat}</td><td>${p.units}</td><td>${p.revenue}</td><td class="up">${p.growth}</td><td><span class="status ${p.status==="Healthy"?"good":"warn"}">${p.status}</span></td></tr>`).join("");
+document.getElementById("productGrid").innerHTML=products.map((p,i)=>`<div class="card product" onclick="openProduct(${i})"><div class="product-top"></div><h3>${p.name}</h3><p>${p.cat}</p><div class="product-row"><span>Revenue</span><strong>${p.revenue}</strong></div><div class="product-row"><span>Growth</span><strong class="up">${p.growth}</strong></div><div class="progress"><span style="width:${p.progress}%"></span></div></div>`).join("");
+document.getElementById("ordersTable").innerHTML=orders.map(o=>`<tr><td><strong>${o[0]}</strong></td><td>${o[1]}</td><td>${o[2]}</td><td>${o[3]}</td><td>${o[4]}</td><td><span class="status ${o[5]==="Delivered"?"good":"warn"}">${o[5]}</span></td></tr>`).join("");
+}
+function setupCanvas(id){
+const c=document.getElementById(id);if(!c)return null;
+const d=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;
+c.width=w*d;c.height=h*d;const x=c.getContext("2d");x.scale(d,d);return {c,x,w,h};
+}
+function drawLine(id,data){
+const s=setupCanvas(id);if(!s)return;const {x,w,h}=s;x.clearRect(0,0,w,h);
+x.strokeStyle="#17464b";x.lineWidth=1;
+for(let i=0;i<5;i++){let y=20+i*(h-55)/4;x.beginPath();x.moveTo(42,y);x.lineTo(w-15,y);x.stroke()}
+const max=Math.max(...data)*1.12,min=Math.min(...data)*.88;
+const pts=data.map((v,i)=>[48+i*(w-70)/(data.length-1),h-30-(v-min)/(max-min)*(h-65)]);
+x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p[0],p[1]):x.moveTo(p[0],p[1]));x.strokeStyle="#22d3ee";x.lineWidth=3;x.stroke();
+pts.forEach(p=>{x.beginPath();x.arc(p[0],p[1],4,0,Math.PI*2);x.fillStyle="#34d399";x.fill()});
+}
+function drawBars(id,data){
+const s=setupCanvas(id);if(!s)return;const {x,w,h}=s;x.clearRect(0,0,w,h);
+const max=Math.max(...data)*1.2,base=h-30,barW=(w-80)/data.length*.58;
+data.forEach((v,i)=>{const bh=(v/max)*(h-70),x0=48+i*(w-70)/data.length; x.fillStyle="#0e7490";x.roundRect(x0,base-bh,barW,bh,5);x.fill();x.fillStyle="#8db1b4";x.font="10px Arial";x.fillText(["Jan","Feb","Mar","Apr","May","Jun"][i],x0,base+18)});
+}
+function drawChannel(){
+const s=setupCanvas("channelChart");if(!s)return;const {x,w,h}=s;const vals=[43,28,17,12],labels=["Website","Instagram","Marketplace","Creators"];const max=50;
+vals.forEach((v,i)=>{let y=28+i*45;x.fillStyle="#163c41";x.fillRect(80,y,w-110,18);x.fillStyle=i===0?"#22d3ee":"#34d399";x.fillRect(80,y,(w-110)*v/max,18);x.fillStyle="#b9d5d6";x.font="10px Arial";x.fillText(labels[i],8,y+13);x.fillText(v+"%",w-25,y+13)});
+}
+function drawAll(){
+drawLine("revenueChart",[21,27,29,35,41,48.6]);
+drawBars("ordersChart",[7.8,8.4,9.6,10.8,11.7,12.84]);
+drawChannel();
+drawLine("fulfillmentChart",[94,95,96,96.5,97,97.1]);
+}
+fill();drawAll();
+window.addEventListener("resize",drawAll);
+const hash=location.hash.slice(1);if(hash&&document.getElementById(hash))showPage(hash);
+</script>
+</body>
+</html>
